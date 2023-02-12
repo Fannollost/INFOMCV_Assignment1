@@ -9,3 +9,6 @@ BLUE   = (0,0,255)
 BOARD_SIZE = (7,6)
 
 WINDOW_NAME = 'img'
+
+DATA_PATH   = './data/calibration.npz'
+IMAGES_PATH = './pics/*.jpg'
