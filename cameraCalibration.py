@@ -27,6 +27,30 @@ def pickColor(column):
         case _:
             return const.RED
 
+def draw(img, corners, imgpts):
+    corner = tuple(corners[0].ravel())
+    pt1 = (int(corner[0]), int(corner[1]))
+    dest1 = tuple(imgpts[0].ravel())
+    dest2 = tuple(imgpts[1].ravel())
+    dest3 = tuple(imgpts[2].ravel())
+    img = cv.line(img, pt1, (int(dest1[0]),int(dest1[1])), (255,0,0), 5)
+    img = cv.line(img, pt1, (int(dest2[0]),int(dest2[1])), (0,255,0), 5)
+    img = cv.line(img, pt1, (int(dest3[0]),int(dest3[1])), (0,0,255), 5)
+    return img
+
+def drawCube(img, corners, imgpts):
+    imgpts = np.int32(imgpts).reshape(-1,2)
+    
+    # draw ground floor in green
+    img = cv.drawContours(img, [imgpts[:4]],-1,(0,255,0),-3)
+    # draw pillars in blue color
+    for i,j in zip(range(4),range(4,8)):
+        img = cv.line(img, tuple(imgpts[i]), tuple(imgpts[j]),(255),3)
+    # draw top layer in red color
+    img = cv.drawContours(img, [imgpts[4:]],-1,(0,0,255),3)
+    return img
+
+
 def undistortImage(filename, mtx, dist):
     img = cv.imread(filename)
     h , w = img.shape[:2]
@@ -53,11 +77,12 @@ def click_event(event, x, y, flags, params):
 def main():
     # termination criteria
     criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
-    
+    objp = np.zeros((6*7,3), np.float32)
+    objp[:,:2] = np.mgrid[0:7, 0:6].T.reshape(-1,2)
+    mtx = []
+    dist = []
     if(os.path.isfile(const.DATA_PATH) != True):
         #prepare object points
-        objp = np.zeros((6*7,3), np.float32)
-        objp[:,:2] = np.mgrid[0:7, 0:6].T.reshape(-1,2)
 
         # Arrays to store object points and image points from all the images.
         objpoints = [] # 3d point in real wold space
@@ -144,7 +169,7 @@ def main():
 
                 # Draw and display the corners
                 cv.drawChessboardCorners(img, const.BOARD_SIZE, corners2, True)
-                showImage(const.WINDOW_NAME, img, 1000)
+                showImage(const.WINDOW_NAME, img, 10)
 
         ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
         np.savez(const.DATA_PATH, mtx=mtx, dist=dist, rvecs=rvecs, tvecs=tvecs)
@@ -154,9 +179,25 @@ def main():
         #extract calibration values from the file:
         mtx = calibration['mtx']
         dist = calibration['dist']
-        rvecs = calibration['rvecs']
-        tvecs = calibration['tvecs']
 
+    testImg = cv.imread('./pics/left12.jpg',1)
+    gray = cv.cvtColor(testImg, cv.COLOR_BGR2GRAY)
+    ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
+
+    if(ret == True):
+        corners2 = cv.cornerSubPix(gray,corners,(11,11), (-1,-1), criteria)
+        ret, rvecs, tvecs = cv.solvePnP(objp, corners2, mtx, dist)
+        
+        imgpts, jac = cv.projectPoints(const.AXIS, rvecs, tvecs, mtx,dist)
+        cubeimgpts, jac = cv.projectPoints(const.CUBE_AXIS, rvecs, tvecs, mtx,dist)
+        img = draw(testImg, corners2, imgpts)
+        img = drawCube(img, corners2, cubeimgpts)
+        showImage(const.WINDOW_NAME, img, 0)
+    
+
+    #online phase!
+
+    
         
     #undist = undistortImage('./pics/left12.jpg', mtx, dist)
     #showImage('undist', undist, 0)
