@@ -88,10 +88,9 @@ def main():
         objpoints = [] # 3d point in real wold space
         imgpoints = [] # 2d points in image space
 
-        images = glob.glob(const.IMAGES_PATH_YANNICK)
+        images = glob.glob(const.IMAGES_PATH_FABIEN)
 
         for fname in images:
-
             img = cv.imread(fname, 1)
             gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
             global counter
@@ -100,6 +99,10 @@ def main():
             counter = 0
             #find the chessboard corners
             ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
+            if ret == True :
+                retval, sharp = cv.estimateChessboardSharpness(gray,const.BOARD_SIZE,corners)
+                if retval[0] > 3 :
+                    continue
             #if found, add object points, image points (after refining them)
             if ret == True:
                 corners2 = cv.cornerSubPix(gray,corners,(11,11), (-1,-1), criteria)
@@ -169,9 +172,12 @@ def main():
 
                 # Draw and display the corners
                 cv.drawChessboardCorners(img, const.BOARD_SIZE, corners2, True)
-                showImage(const.WINDOW_NAME, img, 10)
+                showImage(const.WINDOW_NAME, img, 3000)
 
         ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+        # https://stackoverflow.com/questions/23781089/opencv-calibratecamera-2-reprojection-error-and-custom-computed-one-not-agree?rq=1
+        # https://stackoverflow.com/questions/37901806/reprojection-of-calibratecamera-and-projectpoints
+        print("Root-mean-square error : "+str(ret)+ " px")
         np.savez(const.DATA_PATH, mtx=mtx, dist=dist, rvecs=rvecs, tvecs=tvecs)
     else:
         calibration = np.load(const.DATA_PATH)

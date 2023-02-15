@@ -14,6 +14,7 @@ WINDOW_NAME = 'img'
 DATA_PATH   = './data/calibration.npz'
 IMAGES_PATH = './pics/*.jpg'
 IMAGES_PATH_YANNICK = './pics/yannick/*.jpg'
+IMAGES_PATH_FABIEN = './pics/fabien/*.jpg'
 
 AXIS = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
 CUBE_AXIS = np.float32([[0,0,0], [0,1,0], [1,1,0], [1,0,0],
