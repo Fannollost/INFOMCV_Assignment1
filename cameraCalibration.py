@@ -94,6 +94,53 @@ def drawOrigin(frame, criteria, objp, mtx,dist):
     else:
         return frame
 
+def getValueAt(img, l, c):
+    height, width = img.shape[:2]
+    if l < 0 or c < 0 or c >= width or l >= height :
+        return 0
+    return img[l, c]
+
+def getSubMatrix(frame, l, c):
+    res = np.zeros((3,3))
+    for j in range(l-1, l+2):
+        for i in range(c-1, c+2):
+            res[j-(l-1),i-(c-1)] = getValueAt(frame,j,i)
+    return res
+
+def convolve(ker,frame, l, c):
+    res = 0
+    submat = getSubMatrix(frame, l, c)
+    for j in range(3):
+        for i in range(3):
+            res += ker[j,i] * submat[j,i]
+    return res
+
+def gradient(dx, dy):
+    height, width = dx.shape[:2]
+    res = np.zeros((height, width))
+    for l in range(height):
+        for c in range(width):
+            res[l,c] = math.sqrt(dx[l,c] * dx[l,c] + dy[l,c] * dy[l,c])
+    return res
+
+def derivation(frame):
+    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    height, width = gray.shape[:2]
+    Kx = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], np.float32)
+    Ky = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]], np.float32)
+    dx = np.zeros((height,width))
+    dy = np.zeros((height,width))
+    for l in range(height):
+        for c in range(width):
+            dx[l, c] = convolve(Kx,gray, l, c)
+            dy[l, c] = convolve(Ky,gray, l, c)
+    grad = gradient(dx,dy)
+    showImage(const.WINDOW_NAME, frame, 10000)
+    showImage(const.WINDOW_NAME, dx, 10000)
+    showImage(const.WINDOW_NAME, dy, 10000)
+    showImage(const.WINDOW_NAME, grad, 10000)
+
+
 
 def main():
     # termination criteria
@@ -133,7 +180,10 @@ def main():
 
                 # Draw and display the corners
                 cv.drawChessboardCorners(img, const.BOARD_SIZE, corners2, ret)
+
                 showImage(const.WINDOW_NAME, img, 1000)
+                # edges = cv.Canny(img, 150, 400)
+                # showImage(const.WINDOW_NAME,edges,5000)
             else:
                 showImage(const.WINDOW_NAME, img)
                 while(counter < 4):
@@ -216,7 +266,8 @@ def main():
 
         while True:
             ret, frame = cap.read()
-            img = drawOrigin(frame, criteria, objp, mtx, dist)
+            img = derivation(frame)
+            # img = drawOrigin(frame, criteria, objp, mtx, dist)
             cv.imshow(const.WINDOW_NAME, img)
 
             c = cv.waitKey(1)
