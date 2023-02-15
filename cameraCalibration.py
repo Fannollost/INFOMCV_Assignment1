@@ -74,13 +74,33 @@ def click_event(event, x, y, flags, params):
         clickPoints.append((x,y))
         counter += 1
 
+def checkQuality(gray, corners, limit):
+    retval, sharp = cv.estimateChessboardSharpness(gray, const.BOARD_SIZE, corners)
+    return retval[0] > limit
+
+def drawOrigin(frame, criteria, objp, mtx,dist):
+    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
+
+    if (ret == True):
+        corners2 = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
+        ret, rvecs, tvecs = cv.solvePnP(objp, corners2, mtx, dist)
+
+        imgpts, jac = cv.projectPoints(const.AXIS, rvecs, tvecs, mtx, dist)
+        cubeimgpts, jac = cv.projectPoints(const.CUBE_AXIS, rvecs, tvecs, mtx, dist)
+        img = draw(frame, corners2, imgpts)
+        img = drawCube(img, corners2, cubeimgpts)
+        return img
+    else:
+        return frame
+
+
 def main():
     # termination criteria
     criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
     objp = np.zeros((const.BOARD_SIZE[0]*const.BOARD_SIZE[1],3), np.float32)
     objp[:,:2] = np.mgrid[0:const.BOARD_SIZE[0], 0:const.BOARD_SIZE[1]].T.reshape(-1,2)
-    mtx = []
-    dist = []
+
     if(os.path.isfile(const.DATA_PATH) != True):
         #prepare object points
 
@@ -90,19 +110,20 @@ def main():
 
         images = glob.glob(const.IMAGES_PATH_FABIEN)
 
+        global counter
+        global clickPoints
         for fname in images:
             img = cv.imread(fname, 1)
             gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-            global counter
-            global clickPoints
             clickPoints = []
             counter = 0
+
             #find the chessboard corners
             ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
-            if ret == True :
-                retval, sharp = cv.estimateChessboardSharpness(gray,const.BOARD_SIZE,corners)
-                if retval[0] > 3 :
-                    continue
+
+            if ret and checkQuality(gray, corners, 10):
+                continue
+
             #if found, add object points, image points (after refining them)
             if ret == True:
                 corners2 = cv.cornerSubPix(gray,corners,(11,11), (-1,-1), criteria)
@@ -157,15 +178,15 @@ def main():
 
                 #get uniform corners      
                 uniform = np.array((orig, (orig[0] + longSteps * 8, orig[1] + shortSteps * 0),
-                (orig[0] + longSteps * 8, orig[1] + shortSteps * 7),
-                (orig[0] + longSteps * 0, orig[1] + shortSteps * 7))).astype(np.float32)
+                (orig[0] + longSteps * 8, orig[1] + shortSteps * 5),
+                (orig[0] + longSteps * 0, orig[1] + shortSteps * 5))).astype(np.float32)
                 dst = np.array(clickPoints).astype(np.float32)
 
                 #transform uniform set of points to desired cornerpoints
                 transform_mat = cv.findHomography(uniform,dst)[0]
                 corners2 = cv.perspectiveTransform(interpolatedPoints, transform_mat)
                 corners2 = np.array(corners2).reshape(const.BOARD_SIZE[0]*const.BOARD_SIZE[1],2).astype(np.float32)
-                corners2 = cv.cornerSubPix(gray,corners2,(20,20), (-1,-1), criteria)
+                corners2 = cv.cornerSubPix(gray,corners2,(11,11), (-1,-1), criteria)
 
                 imgpoints.append(corners2)
                 objpoints.append(objp) 
@@ -192,52 +213,31 @@ def main():
         
         if not cap.isOpened():
             raise IOError("Webcam not accessible")
-        print("A")
-        #MAKE BETTER FUNCTION!
+
         while True:
             ret, frame = cap.read()
-            gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-            ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
-            cv.imshow(const.WINDOW_NAME, frame)
-            cv.waitKey(1)
-            if(ret == True):
-                corners2 = cv.cornerSubPix(gray,corners,(11,11), (-1,-1), criteria)
-                ret, rvecs, tvecs = cv.solvePnP(objp, corners2, mtx, dist)
+            img = drawOrigin(frame, criteria, objp, mtx, dist)
+            cv.imshow(const.WINDOW_NAME, img)
 
-                imgpts, jac = cv.projectPoints(const.AXIS, rvecs, tvecs, mtx,dist)
-                cubeimgpts, jac = cv.projectPoints(const.CUBE_AXIS, rvecs, tvecs, mtx,dist)
-                img = draw(frame, corners2, imgpts)
-                img = drawCube(img, corners2, cubeimgpts)
-                cv.imshow(const.WINDOW_NAME, frame)
-                c = cv.waitKey(1)
-                if c == 27:
-                    break
-        cap.release()      
-            
+            c = cv.waitKey(1)
+            if c == 27:
+                break
+
+            try :
+                cv.getWindowProperty(const.WINDOW_NAME, 0)
+            except :
+                break
+        cap.release()
     else:    
         frame = cv.imread('./pics/test.jpg',1)
-        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-        ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
-
-        if(ret == True):
-            corners2 = cv.cornerSubPix(gray,corners,(11,11), (-1,-1), criteria)
-            ret, rvecs, tvecs = cv.solvePnP(objp, corners2, mtx, dist)
-
-            imgpts, jac = cv.projectPoints(const.AXIS, rvecs, tvecs, mtx,dist)
-            cubeimgpts, jac = cv.projectPoints(const.CUBE_AXIS, rvecs, tvecs, mtx,dist)
-            img = draw(frame, corners2, imgpts)
-            img = drawCube(img, corners2, cubeimgpts)
-            showImage(const.WINDOW_NAME, img, 1)
-
+        img = drawOrigin(frame, criteria, objp, mtx, dist)
+        showImage(const.WINDOW_NAME, img, 1)
 
     #webcam online phase!
-    
-    
-        
     #undist = undistortImage('./pics/left12.jpg', mtx, dist)
     #showImage('undist', undist, 0)
-    cv.destroyAllWindows()
 
+    cv.destroyAllWindows()
 
 
 
