@@ -88,9 +88,10 @@ def main():
         objpoints = [] # 3d point in real wold space
         imgpoints = [] # 2d points in image space
 
-        images = glob.glob(const.IMAGES_PATH_FABIEN)
+        images = glob.glob(const.IMAGES_PATH_FLOOR)
 
         for fname in images:
+            print(fname)
             img = cv.imread(fname, 1)
             gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
             global counter
@@ -99,7 +100,7 @@ def main():
             counter = 0
             #find the chessboard corners
             ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
-            if ret == True :
+            if ret == True:
                 retval, sharp = cv.estimateChessboardSharpness(gray,const.BOARD_SIZE,corners)
                 if retval[0] > 3 :
                     continue
@@ -112,7 +113,7 @@ def main():
 
                 # Draw and display the corners
                 cv.drawChessboardCorners(img, const.BOARD_SIZE, corners2, ret)
-                showImage(const.WINDOW_NAME, img, 1000)
+                showImage(const.WINDOW_NAME, img, 300)
             else:
                 showImage(const.WINDOW_NAME, img)
                 while(counter < 4):
@@ -156,16 +157,19 @@ def main():
                         interpolatedPoints[y,x] = (orig[0] + longSteps * x, orig[1] + shortSteps * y)
 
                 #get uniform corners      
-                uniform = np.array((orig, (orig[0] + longSteps * 8, orig[1] + shortSteps * 0),
-                (orig[0] + longSteps * 8, orig[1] + shortSteps * 7),
-                (orig[0] + longSteps * 0, orig[1] + shortSteps * 7))).astype(np.float32)
+                stepFactorX = const.BOARD_SIZE[0] - 1
+                stepFactorY = const.BOARD_SIZE[1] - 1
+
+                uniform = np.array((orig, (orig[0] + longSteps * stepFactorX, orig[1] + shortSteps * 0),
+                (orig[0] + longSteps * stepFactorX, orig[1] + shortSteps * stepFactorY),
+                (orig[0] + longSteps * 0, orig[1] + shortSteps * stepFactorY))).astype(np.float32)
                 dst = np.array(clickPoints).astype(np.float32)
 
                 #transform uniform set of points to desired cornerpoints
                 transform_mat = cv.findHomography(uniform,dst)[0]
                 corners2 = cv.perspectiveTransform(interpolatedPoints, transform_mat)
                 corners2 = np.array(corners2).reshape(const.BOARD_SIZE[0]*const.BOARD_SIZE[1],2).astype(np.float32)
-                corners2 = cv.cornerSubPix(gray,corners2,(20,20), (-1,-1), criteria)
+                corners2 = cv.cornerSubPix(gray,corners2,(11,11), (-1,-1), criteria)
 
                 imgpoints.append(corners2)
                 objpoints.append(objp) 
@@ -186,6 +190,7 @@ def main():
         mtx = calibration['mtx']
         dist = calibration['dist']
 
+    print("F")
     #static online phase!
     if(const.WEBCAM == True):
         cap = cv.VideoCapture(0)
