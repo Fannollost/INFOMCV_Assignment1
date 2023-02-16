@@ -100,7 +100,6 @@ def main():
     criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
     objp = np.zeros((const.BOARD_SIZE[0]*const.BOARD_SIZE[1],3), np.float32)
     objp[:,:2] = np.mgrid[0:const.BOARD_SIZE[0], 0:const.BOARD_SIZE[1]].T.reshape(-1,2)
-
     if(os.path.isfile(const.DATA_PATH) != True):
         #prepare object points
 
@@ -108,11 +107,12 @@ def main():
         objpoints = [] # 3d point in real wold space
         imgpoints = [] # 2d points in image space
 
-        images = glob.glob(const.IMAGES_PATH_FABIEN)
+        images = glob.glob(const.IMAGES_PATH_FLOOR)
 
         global counter
         global clickPoints
         for fname in images:
+            print(fname)
             img = cv.imread(fname, 1)
             gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
             clickPoints = []
@@ -132,11 +132,11 @@ def main():
                 objpoints.append(objp) 
 
                 # Draw and display the corners
-                # cv.drawChessboardCorners(img, const.BOARD_SIZE, corners2, ret)
+                cv.drawChessboardCorners(img, const.BOARD_SIZE, corners2, ret)
+                showImage(const.WINDOW_NAME, img, 1000)
 
-                # showImage(const.WINDOW_NAME, img, 1000)
-                edges = cv.Canny(img, 150, 400)
-                showImage(const.WINDOW_NAME,edges,5000)
+                # edges = cv.Canny(img, 150, 400)
+                # showImage(const.WINDOW_NAME,edges,5000)
             else:
                 showImage(const.WINDOW_NAME, img)
                 while(counter < 4):
@@ -180,9 +180,12 @@ def main():
                         interpolatedPoints[y,x] = (orig[0] + longSteps * x, orig[1] + shortSteps * y)
 
                 #get uniform corners      
-                uniform = np.array((orig, (orig[0] + longSteps * 8, orig[1] + shortSteps * 0),
-                (orig[0] + longSteps * 8, orig[1] + shortSteps * 5),
-                (orig[0] + longSteps * 0, orig[1] + shortSteps * 5))).astype(np.float32)
+                stepFactorX = const.BOARD_SIZE[0] - 1
+                stepFactorY = const.BOARD_SIZE[1] - 1
+
+                uniform = np.array((orig, (orig[0] + longSteps * stepFactorX, orig[1] + shortSteps * 0),
+                (orig[0] + longSteps * stepFactorX, orig[1] + shortSteps * stepFactorY),
+                (orig[0] + longSteps * 0, orig[1] + shortSteps * stepFactorY))).astype(np.float32)
                 dst = np.array(clickPoints).astype(np.float32)
 
                 #transform uniform set of points to desired cornerpoints
@@ -210,6 +213,7 @@ def main():
         mtx = calibration['mtx']
         dist = calibration['dist']
 
+    print("F")
     #static online phase!
     if(const.WEBCAM == True):
         cap = cv.VideoCapture(0)
