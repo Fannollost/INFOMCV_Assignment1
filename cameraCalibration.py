@@ -126,7 +126,7 @@ def main():
         objpoints = [] # 3d point in real wold space
         imgpoints = [] # 2d points in image space
 
-        images = glob.glob(const.IMAGES_PATH_YANNICK)
+        images = glob.glob(const.IMAGES_PATH_TEST)
 
         global counter
         global clickPoints
@@ -145,14 +145,14 @@ def main():
 
             #if found, add object points, image points (after refining them)
             if ret == True:
-                corners2 = cv.cornerSubPix(gray,corners,(11,11), (-1,-1), criteria)
+                corners2 = cv.cornerSubPix(gray,corners,(5,5), (-1,-1), criteria)
 
                 imgpoints.append(corners2)
                 objpoints.append(objp) 
 
                 # Draw and display the corners
                 cv.drawChessboardCorners(img, const.BOARD_SIZE, corners2, ret)
-                showImage(const.WINDOW_NAME, img, 1000)
+                showImage(const.WINDOW_NAME, img, 300)
 
                 #edges = cv.Canny(img, 150, 400)
                 #showImage(const.WINDOW_NAME,edges,5000)
@@ -257,9 +257,9 @@ def main():
                 break
         cap.release()
     else:    
-        frame = cv.imread('./pics/test.jpg',1)
+        frame = cv.imread('./pics/testimg.jpg',1)
         img = drawOrigin(frame, criteria, objp, mtx, dist)
-        showImage(const.WINDOW_NAME, img, 1)
+        showImage(const.WINDOW_NAME, img, 0)
 
     #webcam online phase!
     #undist = undistortImage('./pics/left12.jpg', mtx, dist)
