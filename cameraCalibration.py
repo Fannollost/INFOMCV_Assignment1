@@ -126,7 +126,7 @@ def main():
         objpoints = [] # 3d point in real wold space
         imgpoints = [] # 2d points in image space
 
-        images = glob.glob(const.IMAGES_PATH_TEST)
+        images = glob.glob(const.IMAGES_PATH_TEST_ALL)
 
         global counter
         global clickPoints
@@ -234,6 +234,7 @@ def main():
         #extract calibration values from the file:
         mtx = calibration['mtx']
         dist = calibration['dist']
+        print(mtx)
 
     print("F")
     #static online phase!
