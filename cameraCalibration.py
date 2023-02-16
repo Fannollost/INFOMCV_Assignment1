@@ -102,7 +102,7 @@ def drawOrigin(frame, criteria, objp, mtx,dist):
     ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
 
     if (ret == True):
-        corners2 = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
+        corners2 = cv.cornerSubPix(gray, corners, (5, 5), (-1, -1), criteria)
         ret, rvecs, tvecs = cv.solvePnP(objp, corners2, mtx, dist)
 
         imgpts, jac = cv.projectPoints(const.AXIS, rvecs, tvecs, mtx, dist)
