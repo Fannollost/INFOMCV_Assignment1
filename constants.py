@@ -14,7 +14,7 @@ WINDOW_SIZE = (60,40)
 
 DATA_PATH   = './data/calibration.npz'
 IMAGES_PATH = './pics/*.jpg'
-IMAGES_PATH_YANNICK = './pics/yannick/*.jpg'
+IMAGES_PATH_YANNICK = './pics/yannick/test/*.jpg'
 IMAGES_PATH_FABIEN = './pics/fabien/*.jpg'
 IMAGES_PATH_DEFAULT = './pics/default/*.jpg'
 IMAGES_PATH_FLOOR = './pics/floor/*.jpg'
@@ -24,3 +24,4 @@ CUBE_AXIS = np.float32([[0,0,0], [0,1,0], [1,1,0], [1,0,0],
                    [0,0,-1],[0,1,-1],[1,1,-1],[1,0,-1] ])
 
 WEBCAM = True
+FORCE_CALIBRATION = True

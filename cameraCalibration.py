@@ -100,14 +100,14 @@ def main():
     criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
     objp = np.zeros((const.BOARD_SIZE[0]*const.BOARD_SIZE[1],3), np.float32)
     objp[:,:2] = np.mgrid[0:const.BOARD_SIZE[0], 0:const.BOARD_SIZE[1]].T.reshape(-1,2)
-    if(os.path.isfile(const.DATA_PATH) != True):
+    if(os.path.isfile(const.DATA_PATH) != True or const.FORCE_CALIBRATION):
         #prepare object points
 
         # Arrays to store object points and image points from all the images.
         objpoints = [] # 3d point in real wold space
         imgpoints = [] # 2d points in image space
 
-        images = glob.glob(const.IMAGES_PATH_FLOOR)
+        images = glob.glob(const.IMAGES_PATH_YANNICK)
 
         global counter
         global clickPoints
@@ -135,8 +135,8 @@ def main():
                 cv.drawChessboardCorners(img, const.BOARD_SIZE, corners2, ret)
                 showImage(const.WINDOW_NAME, img, 1000)
 
-                # edges = cv.Canny(img, 150, 400)
-                # showImage(const.WINDOW_NAME,edges,5000)
+                #edges = cv.Canny(img, 150, 400)
+                #showImage(const.WINDOW_NAME,edges,5000)
             else:
                 showImage(const.WINDOW_NAME, img)
                 while(counter < 4):
@@ -192,7 +192,9 @@ def main():
                 transform_mat = cv.findHomography(uniform,dst)[0]
                 corners2 = cv.perspectiveTransform(interpolatedPoints, transform_mat)
                 corners2 = np.array(corners2).reshape(const.BOARD_SIZE[0]*const.BOARD_SIZE[1],2).astype(np.float32)
-                corners2 = cv.cornerSubPix(gray,corners2,(11,11), (-1,-1), criteria)
+
+                edges = cv.Canny(img, 150, 400)
+                corners2 = cv.cornerSubPix(edges,corners2,(5,5), (-1,-1), criteria)
 
                 imgpoints.append(corners2)
                 objpoints.append(objp) 
