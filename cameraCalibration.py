@@ -102,7 +102,7 @@ def drawOrigin(frame, criteria, objp, mtx,dist):
     ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
 
     if (ret == True):
-        corners2 = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
+        corners2 = cv.cornerSubPix(gray, corners, (5, 5), (-1, -1), criteria)
         ret, rvecs, tvecs = cv.solvePnP(objp, corners2, mtx, dist)
 
         imgpts, jac = cv.projectPoints(const.AXIS, rvecs, tvecs, mtx, dist)
@@ -139,8 +139,8 @@ def main():
 
             #find the chessboard corners
             gray, ret, corners = improveQuality(gray)
-            if ret and checkQuality(gray, corners, 5):
-                continue
+            #if ret and checkQuality(gray, corners, 5):
+            #    continue
 
 
             #if found, add object points, image points (after refining them)
@@ -202,11 +202,12 @@ def main():
                 stepFactorX = const.BOARD_SIZE[0] - 1
                 stepFactorY = const.BOARD_SIZE[1] - 1
 
-                uniform = np.array((orig, (orig[0] + longSteps * stepFactorX, orig[1] + shortSteps * 0),
+                uniform = np.array((orig, 
+                (orig[0] + longSteps * stepFactorX, orig[1] + shortSteps * 0),
                 (orig[0] + longSteps * stepFactorX, orig[1] + shortSteps * stepFactorY),
                 (orig[0] + longSteps * 0, orig[1] + shortSteps * stepFactorY))).astype(np.float32)
                 dst = np.array(clickPoints).astype(np.float32)
-
+  
                 #transform uniform set of points to desired cornerpoints
                 transform_mat = cv.findHomography(uniform,dst)[0]
                 corners2 = cv.perspectiveTransform(interpolatedPoints, transform_mat)
@@ -257,7 +258,8 @@ def main():
                 break
         cap.release()
     else:    
-        frame = cv.imread('./pics/testimg.jpg',1)
+        frame = cv.imread('./pics/testimg3.jpg',1)
+        print(dist)
         img = drawOrigin(frame, criteria, objp, mtx, dist)
         showImage(const.WINDOW_NAME, img, 0)
 
