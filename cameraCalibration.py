@@ -179,11 +179,11 @@ def main():
                 objpoints.append(objp) 
 
                 # Draw and display the corners
-                cv.drawChessboardCorners(img, const.BOARD_SIZE, corners2, ret)
+                # cv.drawChessboardCorners(img, const.BOARD_SIZE, corners2, ret)
 
-                showImage(const.WINDOW_NAME, img, 1000)
-                # edges = cv.Canny(img, 150, 400)
-                # showImage(const.WINDOW_NAME,edges,5000)
+                # showImage(const.WINDOW_NAME, img, 1000)
+                edges = cv.Canny(img, 150, 400)
+                showImage(const.WINDOW_NAME,edges,5000)
             else:
                 showImage(const.WINDOW_NAME, img)
                 while(counter < 4):
