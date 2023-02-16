@@ -78,6 +78,25 @@ def checkQuality(gray, corners, limit):
     retval, sharp = cv.estimateChessboardSharpness(gray, const.BOARD_SIZE, corners)
     return retval[0] > limit
 
+def improveQuality(gray):
+    ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
+    if ret == True:
+        retval, sharp = cv.estimateChessboardSharpness(gray, const.BOARD_SIZE, corners)
+        print("Sharpness : " + str(retval[0]))
+
+    edges = cv.Canny(gray, 150, 400)
+    h , w = gray.shape[:2]
+    for l in range(h):
+        for c in range(w):
+            if(edges[l,c] > 250):
+                gray[l,c] = 0
+    showImage(const.WINDOW_NAME,gray,1500)
+    ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
+    if ret == True:
+        retval, sharp = cv.estimateChessboardSharpness(gray, const.BOARD_SIZE, corners)
+        print("Corrected sharpness : " + str(retval[0] ))
+    return gray, ret, corners
+
 def drawOrigin(frame, criteria, objp, mtx,dist):
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
@@ -107,7 +126,7 @@ def main():
         objpoints = [] # 3d point in real wold space
         imgpoints = [] # 2d points in image space
 
-        images = glob.glob(const.IMAGES_PATH_FLOOR)
+        images = glob.glob(const.IMAGES_PATH_FABIEN)
 
         global counter
         global clickPoints
@@ -119,10 +138,10 @@ def main():
             counter = 0
 
             #find the chessboard corners
-            ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
-
-            if ret and checkQuality(gray, corners, 10):
+            gray, ret, corners = improveQuality(gray)
+            if ret and checkQuality(gray, corners, 5):
                 continue
+
 
             #if found, add object points, image points (after refining them)
             if ret == True:
@@ -135,7 +154,6 @@ def main():
                 cv.drawChessboardCorners(img, const.BOARD_SIZE, corners2, ret)
                 showImage(const.WINDOW_NAME, img, 1000)
 
-                # edges = cv.Canny(img, 150, 400)
                 # showImage(const.WINDOW_NAME,edges,5000)
             else:
                 showImage(const.WINDOW_NAME, img)
@@ -192,7 +210,9 @@ def main():
                 transform_mat = cv.findHomography(uniform,dst)[0]
                 corners2 = cv.perspectiveTransform(interpolatedPoints, transform_mat)
                 corners2 = np.array(corners2).reshape(const.BOARD_SIZE[0]*const.BOARD_SIZE[1],2).astype(np.float32)
-                corners2 = cv.cornerSubPix(gray,corners2,(11,11), (-1,-1), criteria)
+
+                edges = cv.Canny(img, 150, 400)
+                corners2 = cv.cornerSubPix(edges,corners2,(11,11), (-1,-1), criteria)
 
                 imgpoints.append(corners2)
                 objpoints.append(objp) 
