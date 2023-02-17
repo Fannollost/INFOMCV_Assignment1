@@ -104,7 +104,7 @@ def drawOrigin(frame, criteria, objp, mtx,dist):
     if (ret == True):
         corners2 = cv.cornerSubPix(gray, corners, (5, 5), (-1, -1), criteria)
         ret, rvecs, tvecs = cv.solvePnP(objp, corners2, mtx, dist)
-
+        
         imgpts, jac = cv.projectPoints(const.AXIS, rvecs, tvecs, mtx, dist)
         cubeimgpts, jac = cv.projectPoints(const.CUBE_AXIS, rvecs, tvecs, mtx, dist)
         img = draw(frame, corners2, imgpts)
@@ -126,7 +126,7 @@ def main():
         objpoints = [] # 3d point in real wold space
         imgpoints = [] # 2d points in image space
 
-        images = glob.glob(const.IMAGES_PATH_TEST_ALL)
+        images = glob.glob(const.IMAGES_PATH_TEST_SELECTION)
 
         global counter
         global clickPoints
@@ -139,8 +139,9 @@ def main():
 
             #find the chessboard corners
             gray, ret, corners = improveQuality(gray)
-            #if ret and checkQuality(gray, corners, 5):
-            #    continue
+            if ret and checkQuality(gray, corners, 5):
+                print("Rejected Image: ")
+                continue
 
 
             #if found, add object points, image points (after refining them)
@@ -234,9 +235,8 @@ def main():
         #extract calibration values from the file:
         mtx = calibration['mtx']
         dist = calibration['dist']
-        print(mtx)
-
-    print("F")
+    
+    print(mtx)
     #static online phase!
     if(const.WEBCAM == True):
         cap = cv.VideoCapture(0)
