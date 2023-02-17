@@ -27,5 +27,5 @@ AXIS = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
 CUBE_AXIS = np.float32([[0,0,0], [0,1,0], [1,1,0], [1,0,0],
                    [0,0,-1],[0,1,-1],[1,1,-1],[1,0,-1] ])
 
-WEBCAM = False
-FORCE_CALIBRATION = True
+WEBCAM = True
+FORCE_CALIBRATION = False

@@ -126,7 +126,7 @@ def main():
         objpoints = [] # 3d point in real wold space
         imgpoints = [] # 2d points in image space
 
-        images = glob.glob(const.IMAGES_PATH_TEST_SELECTION)
+        images = glob.glob(const.IMAGES_PATH_TEST_ALL)
 
         global counter
         global clickPoints
@@ -239,11 +239,13 @@ def main():
     print(mtx)
     #static online phase!
     if(const.WEBCAM == True):
-        cap = cv.VideoCapture(0)
+        cap = cv.VideoCapture(0, cv.CAP_DSHOW)
         
         if not cap.isOpened():
             raise IOError("Webcam not accessible")
 
+        cap.set(cv.CAP_PROP_FRAME_WIDTH, 1280)
+        cap.set(cv.CAP_PROP_FRAME_HEIGHT, 720)
         while True:
             ret, frame = cap.read()
             img = drawOrigin(frame, criteria, objp, mtx, dist)
