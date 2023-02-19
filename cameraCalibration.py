@@ -84,9 +84,12 @@ def improveQuality(gray):
     return gray, ret, corners
 
 #function to draw the axis and the cube on given input frame
-def drawOrigin(frame, criteria, objp, mtx,dist):
+def drawOrigin(frame, criteria, objp, mtx, dist , webcam = False):
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
+    if webcam :
+        ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, cv.CALIB_CB_FAST_CHECK)
+    else :
+        ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
 
     if (ret == True):
         corners2 = cv.cornerSubPix(gray, corners, (5, 5), (-1, -1), criteria)
@@ -100,7 +103,6 @@ def drawOrigin(frame, criteria, objp, mtx,dist):
     else:
         return frame
 
-
 def main():
     # termination criteria
     criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -113,7 +115,7 @@ def main():
         objpoints = [] # 3d point in real wold space
         imgpoints = [] # 2d points in image space
 
-        images = glob.glob(const.IMAGES_PATH_TEST_MANUAL)
+        images = glob.glob(const.IMAGES_PATH_TEST_SELECTION)
 
         global counter
         global clickPoints
@@ -128,7 +130,7 @@ def main():
             gray, ret, corners = improveQuality(gray)
 
             #reject the low quality images
-            if ret and not checkQuality(gray, corners, 3) and const.REJECT_LOW_QUALITY:
+            if ret and not checkQuality(gray, corners, 5) and const.REJECT_LOW_QUALITY:
                 print("Rejected Image: " + str(fname))
                 continue
 
@@ -200,7 +202,7 @@ def main():
                 #transform uniform set of points to desired cornerpoints
                 transform_mat = cv.findHomography(uniform,dst)[0]
                 corners2 = cv.perspectiveTransform(interpolatedPoints, transform_mat)
-                corners2 = np.array(corners2).reshape(const.BOARD_SIZE[0]*const.BOARD_SIZE[1],2).astype(np.float32)
+                corners2 = np.array(corners2).reshape(const.BOARD_SIZE[0]*const.BOARD_SIZE[1],1,2).astype(np.float32)
 
                 edges = cv.Canny(img, 150, 400)
                 corners2 = cv.cornerSubPix(edges,corners2,(5,5), (-1,-1), criteria)
@@ -208,7 +210,7 @@ def main():
                 imgpoints.append(corners2)
                 objpoints.append(objp)
 
-                if not checkQuality(gray, corners2, 3) and const.REJECT_LOW_QUALITY:
+                if not checkQuality(gray, corners2, 5) and const.REJECT_LOW_QUALITY:
                     print("Rejected Image: " + str(fname))
                     continue
 
@@ -250,7 +252,7 @@ def main():
             ret, frame = cap.read()
 
             #draw axis and cube on the board
-            img = drawOrigin(frame, criteria, objp, mtx, dist)
+            img = drawOrigin(frame, criteria, objp, mtx, dist, True)
             cv.imshow(const.WINDOW_NAME, img)
 
             c = cv.waitKey(1)
