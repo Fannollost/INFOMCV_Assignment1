@@ -147,6 +147,8 @@ def main():
                 showImage(const.WINDOW_NAME, img)
                 while(counter < 4):
                     #Get mouseinput
+                    #the mouse clicking should be done by starting at the bottom right black corner in a horizontally rotated chessboard. If the chessboard
+                    #is rotated differently, the same corresponding corner should be picked 
                     cv.setMouseCallback(const.WINDOW_NAME, click_event)
                     cv.waitKey(1)
 
