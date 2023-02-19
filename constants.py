@@ -23,9 +23,11 @@ IMAGES_PATH_TEST_ALL = './pics/testingSet/*.jpg'
 IMAGES_PATH_TEST_SELECTION = './pics/testingSet/selection*.jpg'
 IMAGES_PATH_TEST_SUB_SELECTION = './pics/testingSet/selection_sub*.jpg'
 
+
 AXIS = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
 CUBE_AXIS = np.float32([[0,0,0], [0,1,0], [1,1,0], [1,0,0],
                    [0,0,-1],[0,1,-1],[1,1,-1],[1,0,-1] ])
 
-WEBCAM = True
-FORCE_CALIBRATION = False
+WEBCAM = False
+FORCE_CALIBRATION = True
+REJECT_LOW_QUALITY = False

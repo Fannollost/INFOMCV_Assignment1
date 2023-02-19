@@ -17,9 +17,9 @@ def draw(img, corners, imgpts):
     dest1 = tuple(imgpts[0].ravel())
     dest2 = tuple(imgpts[1].ravel())
     dest3 = tuple(imgpts[2].ravel())
-    img = cv.line(img, pt1, (int(dest1[0]),int(dest1[1])), (255,0,0), 5)
-    img = cv.line(img, pt1, (int(dest2[0]),int(dest2[1])), (0,255,0), 5)
-    img = cv.line(img, pt1, (int(dest3[0]),int(dest3[1])), (0,0,255), 5)
+    img = cv.line(img, pt1, (int(dest1[0]),int(dest1[1])), (255,0,0), 3)
+    img = cv.line(img, pt1, (int(dest2[0]),int(dest2[1])), (0,255,0), 3)
+    img = cv.line(img, pt1, (int(dest3[0]),int(dest3[1])), (0,0,255), 3)
     return img
 
 #draws the cube on the board
@@ -27,12 +27,12 @@ def drawCube(img, corners, imgpts):
     imgpts = np.int32(imgpts).reshape(-1,2)
     
     # draw ground floor in green
-    img = cv.drawContours(img, [imgpts[:4]],-1,(0,255,0),-3)
+    img = cv.drawContours(img, [imgpts[:4]],-1,(0,255,0),-2)
     # draw pillars in blue color
     for i,j in zip(range(4),range(4,8)):
-        img = cv.line(img, tuple(imgpts[i]), tuple(imgpts[j]),(255),3)
+        img = cv.line(img, tuple(imgpts[i]), tuple(imgpts[j]),(255),2)
     # draw top layer in red color
-    img = cv.drawContours(img, [imgpts[4:]],-1,(0,0,255),3)
+    img = cv.drawContours(img, [imgpts[4:]],-1,(0,0,255),2)
     return img
 
 
@@ -51,10 +51,16 @@ def click_event(event, x, y, flags, params):
         clickPoints.append((x,y))
         counter += 1
 
+<<<<<<< HEAD
 #returns true to reject and image based on the sharpness of the chessboard
 def checkQuality(gray, corners, limit):
+=======
+def checkQuality(gray, corners):
+>>>>>>> 32dd184b362f96bd6a9bcd57d6748e090c816005
     retval, sharp = cv.estimateChessboardSharpness(gray, const.BOARD_SIZE, corners)
-    return retval[0] > limit
+    if retval[0] > 3:
+        print("Sharpness : " + str(retval[0]) +" - Limit : 3" )
+    return retval[0] <= 3
 
 #Improves the quality of the chessboard
 def improveQuality(gray):
@@ -64,17 +70,24 @@ def improveQuality(gray):
     if ret == True:
         retval, sharp = cv.estimateChessboardSharpness(gray, const.BOARD_SIZE, corners)
         print("Sharpness : " + str(retval[0]))
+<<<<<<< HEAD
 
     #enhance the edges
+=======
+>>>>>>> 32dd184b362f96bd6a9bcd57d6748e090c816005
     edges = cv.Canny(gray, 150, 400)
     h , w = gray.shape[:2]
     for l in range(h):
         for c in range(w):
             if(edges[l,c] > 250):
                 gray[l,c] = 0
+<<<<<<< HEAD
     showImage(const.WINDOW_NAME,gray,1500)
 
     #determine updated sharpness of the board
+=======
+    showImage(const.WINDOW_NAME,gray,1000)
+>>>>>>> 32dd184b362f96bd6a9bcd57d6748e090c816005
     ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
     if ret == True:
         retval, sharp = cv.estimateChessboardSharpness(gray, const.BOARD_SIZE, corners)
@@ -111,7 +124,7 @@ def main():
         objpoints = [] # 3d point in real wold space
         imgpoints = [] # 2d points in image space
 
-        images = glob.glob(const.IMAGES_PATH_TEST_ALL)
+        images = glob.glob(const.IMAGES_PATH_TEST_SUB_SELECTION)
 
         global counter
         global clickPoints
@@ -124,10 +137,20 @@ def main():
 
             #find the chessboard corners
             gray, ret, corners = improveQuality(gray)
+<<<<<<< HEAD
             if ret and checkQuality(gray, corners, 5):
                 print("Rejected Image!")
                 continue
 
+=======
+
+            if ret and not checkQuality(gray, corners) and const.REJECT_LOW_QUALITY:
+                print("Rejected Image: " + str(fname))
+                continue
+
+
+
+>>>>>>> 32dd184b362f96bd6a9bcd57d6748e090c816005
             #if found, add object points, image points (after refining them)
             if ret == True:
                 corners2 = cv.cornerSubPix(gray,corners,(5,5), (-1,-1), criteria)
@@ -139,8 +162,6 @@ def main():
                 cv.drawChessboardCorners(img, const.BOARD_SIZE, corners2, ret)
                 showImage(const.WINDOW_NAME, img, 300)
 
-                #edges = cv.Canny(img, 150, 400)
-                #showImage(const.WINDOW_NAME,edges,5000)
             else:
                 showImage(const.WINDOW_NAME, img)
                 while(counter < 4):
@@ -202,7 +223,11 @@ def main():
                 corners2 = cv.cornerSubPix(edges,corners2,(5,5), (-1,-1), criteria)
 
                 imgpoints.append(corners2)
-                objpoints.append(objp) 
+                objpoints.append(objp)
+
+                if not checkQuality(gray, corners2) and const.REJECT_LOW_QUALITY:
+                    print("Rejected Image: " + str(fname))
+                    continue
 
                 # Draw and display the corners
                 cv.drawChessboardCorners(img, const.BOARD_SIZE, corners2, True)
