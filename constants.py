@@ -30,4 +30,4 @@ CUBE_AXIS = np.float32([[0,0,0], [0,1,0], [1,1,0], [1,0,0],
 
 WEBCAM = True
 FORCE_CALIBRATION = True
-REJECT_LOW_QUALITY = False
+REJECT_LOW_QUALITY = True

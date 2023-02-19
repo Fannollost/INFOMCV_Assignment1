@@ -127,10 +127,11 @@ def main():
             counter = 0
 
             #find the chessboard corners
-            gray, ret, corners = improveQuality(gray)
+            #gray, ret, corners = improveQuality(gray)
+            ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
 
             #reject the low quality images
-            if ret and not checkQuality(gray, corners, 5) and const.REJECT_LOW_QUALITY:
+            if ret and not checkQuality(gray, corners, 3) and const.REJECT_LOW_QUALITY:
                 print("Rejected Image: " + str(fname))
                 continue
 
