@@ -54,9 +54,9 @@ def click_event(event, x, y, flags, params):
 #returns true to reject and image based on the sharpness of the chessboard
 def checkQuality(gray, corners, limit):
     retval, sharp = cv.estimateChessboardSharpness(gray, const.BOARD_SIZE, corners)
-    if retval[0] > 3:
-        print("Sharpness : " + str(retval[0]) +" - Limit : 3" )
-    return retval[0] <= 3
+    if retval[0] > limit:
+        print("Sharpness : " + str(retval[0]) +" - Limit :" + str(limit) )
+    return retval[0] <= limit
 
 #Improves the quality of the chessboard
 def improveQuality(gray):
@@ -113,7 +113,7 @@ def main():
         objpoints = [] # 3d point in real wold space
         imgpoints = [] # 2d points in image space
 
-        images = glob.glob(const.IMAGES_PATH_TEST_SUB_SELECTION)
+        images = glob.glob(const.IMAGES_PATH_TEST_MANUAL)
 
         global counter
         global clickPoints
@@ -128,7 +128,7 @@ def main():
             gray, ret, corners = improveQuality(gray)
 
             #reject the low quality images
-            if ret and not checkQuality(gray, corners) and const.REJECT_LOW_QUALITY:
+            if ret and not checkQuality(gray, corners, 3) and const.REJECT_LOW_QUALITY:
                 print("Rejected Image: " + str(fname))
                 continue
 
@@ -206,7 +206,7 @@ def main():
                 imgpoints.append(corners2)
                 objpoints.append(objp)
 
-                if not checkQuality(gray, corners2) and const.REJECT_LOW_QUALITY:
+                if not checkQuality(gray, corners2, 3) and const.REJECT_LOW_QUALITY:
                     print("Rejected Image: " + str(fname))
                     continue
 
