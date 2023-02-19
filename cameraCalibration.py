@@ -10,23 +10,7 @@ global counter
 clickPoints = []
 counter = 0
 
-def pickColor(column):
-    match column:
-        case 0:
-            return const.RED
-        case 1:
-            return const.ORANGE
-        case 2: 
-            return const.YELLOW
-        case 3:
-            return const.GREEN
-        case 4: 
-            return const.LBLUE
-        case 5: 
-            return const.BLUE
-        case _:
-            return const.RED
-
+#draws the 
 def draw(img, corners, imgpts):
     corner = tuple(corners[0].ravel())
     pt1 = (int(corner[0]), int(corner[1]))
@@ -38,6 +22,7 @@ def draw(img, corners, imgpts):
     img = cv.line(img, pt1, (int(dest3[0]),int(dest3[1])), (0,0,255), 5)
     return img
 
+#draws the cube on the board
 def drawCube(img, corners, imgpts):
     imgpts = np.int32(imgpts).reshape(-1,2)
     
@@ -51,22 +36,14 @@ def drawCube(img, corners, imgpts):
     return img
 
 
-def undistortImage(filename, mtx, dist):
-    img = cv.imread(filename)
-    h , w = img.shape[:2]
-    newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
-
-    #undistort
-    dst = cv.undistort(img, mtx, dist, None, newcameramtx)
-    #x, y, w, h = roi
-    #dst = dst[y:y+h, x:x+w]
-    return dst
-
+#function to show image
 def showImage(name, image, wait = -1):
     cv.imshow(name, image)
     if(wait >= 0):
         cv.waitKey(wait)
 
+#Get mouse click event
+#If leftmouse click, save and print the point
 def click_event(event, x, y, flags, params):
     if event == cv.EVENT_LBUTTONDOWN:
         print(x, ' ', y)
@@ -74,16 +51,21 @@ def click_event(event, x, y, flags, params):
         clickPoints.append((x,y))
         counter += 1
 
+#returns true to reject and image based on the sharpness of the chessboard
 def checkQuality(gray, corners, limit):
     retval, sharp = cv.estimateChessboardSharpness(gray, const.BOARD_SIZE, corners)
     return retval[0] > limit
 
+#Improves the quality of the chessboard
 def improveQuality(gray):
+
+    #determine original sharpness of the board
     ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
     if ret == True:
         retval, sharp = cv.estimateChessboardSharpness(gray, const.BOARD_SIZE, corners)
         print("Sharpness : " + str(retval[0]))
 
+    #enhance the edges
     edges = cv.Canny(gray, 150, 400)
     h , w = gray.shape[:2]
     for l in range(h):
@@ -91,12 +73,15 @@ def improveQuality(gray):
             if(edges[l,c] > 250):
                 gray[l,c] = 0
     showImage(const.WINDOW_NAME,gray,1500)
+
+    #determine updated sharpness of the board
     ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
     if ret == True:
         retval, sharp = cv.estimateChessboardSharpness(gray, const.BOARD_SIZE, corners)
         print("Corrected sharpness : " + str(retval[0] ))
     return gray, ret, corners
 
+#function to draw the axis and the cube on given input frame
 def drawOrigin(frame, criteria, objp, mtx,dist):
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
@@ -140,9 +125,8 @@ def main():
             #find the chessboard corners
             gray, ret, corners = improveQuality(gray)
             if ret and checkQuality(gray, corners, 5):
-                print("Rejected Image: ")
+                print("Rejected Image!")
                 continue
-
 
             #if found, add object points, image points (after refining them)
             if ret == True:
@@ -237,7 +221,6 @@ def main():
         dist = calibration['dist']
     
     print(mtx)
-    #static online phase!
     if(const.WEBCAM == True):
         cap = cv.VideoCapture(0, cv.CAP_DSHOW)
         
