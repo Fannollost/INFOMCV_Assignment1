@@ -10,7 +10,7 @@ global counter
 clickPoints = []
 counter = 0
 
-#draws the 
+#draws the axis on the board
 def draw(img, corners, imgpts):
     corner = tuple(corners[0].ravel())
     pt1 = (int(corner[0]), int(corner[1]))
@@ -51,12 +51,8 @@ def click_event(event, x, y, flags, params):
         clickPoints.append((x,y))
         counter += 1
 
-<<<<<<< HEAD
 #returns true to reject and image based on the sharpness of the chessboard
 def checkQuality(gray, corners, limit):
-=======
-def checkQuality(gray, corners):
->>>>>>> 32dd184b362f96bd6a9bcd57d6748e090c816005
     retval, sharp = cv.estimateChessboardSharpness(gray, const.BOARD_SIZE, corners)
     if retval[0] > 3:
         print("Sharpness : " + str(retval[0]) +" - Limit : 3" )
@@ -70,24 +66,17 @@ def improveQuality(gray):
     if ret == True:
         retval, sharp = cv.estimateChessboardSharpness(gray, const.BOARD_SIZE, corners)
         print("Sharpness : " + str(retval[0]))
-<<<<<<< HEAD
 
     #enhance the edges
-=======
->>>>>>> 32dd184b362f96bd6a9bcd57d6748e090c816005
     edges = cv.Canny(gray, 150, 400)
     h , w = gray.shape[:2]
     for l in range(h):
         for c in range(w):
             if(edges[l,c] > 250):
                 gray[l,c] = 0
-<<<<<<< HEAD
     showImage(const.WINDOW_NAME,gray,1500)
 
     #determine updated sharpness of the board
-=======
-    showImage(const.WINDOW_NAME,gray,1000)
->>>>>>> 32dd184b362f96bd6a9bcd57d6748e090c816005
     ret, corners = cv.findChessboardCorners(gray, const.BOARD_SIZE, None)
     if ret == True:
         retval, sharp = cv.estimateChessboardSharpness(gray, const.BOARD_SIZE, corners)
@@ -137,20 +126,12 @@ def main():
 
             #find the chessboard corners
             gray, ret, corners = improveQuality(gray)
-<<<<<<< HEAD
-            if ret and checkQuality(gray, corners, 5):
-                print("Rejected Image!")
-                continue
 
-=======
-
+            #reject the low quality images
             if ret and not checkQuality(gray, corners) and const.REJECT_LOW_QUALITY:
                 print("Rejected Image: " + str(fname))
                 continue
 
-
-
->>>>>>> 32dd184b362f96bd6a9bcd57d6748e090c816005
             #if found, add object points, image points (after refining them)
             if ret == True:
                 corners2 = cv.cornerSubPix(gray,corners,(5,5), (-1,-1), criteria)
@@ -246,6 +227,7 @@ def main():
         dist = calibration['dist']
     
     print(mtx)
+    #online phase, check if the webcam functionality is on
     if(const.WEBCAM == True):
         cap = cv.VideoCapture(0, cv.CAP_DSHOW)
         
@@ -256,6 +238,8 @@ def main():
         cap.set(cv.CAP_PROP_FRAME_HEIGHT, 720)
         while True:
             ret, frame = cap.read()
+
+            #draw axis and cube on the board
             img = drawOrigin(frame, criteria, objp, mtx, dist)
             cv.imshow(const.WINDOW_NAME, img)
 
@@ -269,14 +253,11 @@ def main():
                 break
         cap.release()
     else:    
+        #draw axis and cube on test image
         frame = cv.imread('./pics/testimg3.jpg',1)
         print(dist)
         img = drawOrigin(frame, criteria, objp, mtx, dist)
         showImage(const.WINDOW_NAME, img, 0)
-
-    #webcam online phase!
-    #undist = undistortImage('./pics/left12.jpg', mtx, dist)
-    #showImage('undist', undist, 0)
 
     cv.destroyAllWindows()
 
