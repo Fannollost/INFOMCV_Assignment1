@@ -10,7 +10,7 @@ global counter
 clickPoints = []
 counter = 0
 
-#draws the axis on the board
+#Draws the axis on the board
 def draw(img, corners, imgpts):
     corner = tuple(corners[0].ravel())
     pt1 = (int(corner[0]), int(corner[1]))
@@ -22,7 +22,7 @@ def draw(img, corners, imgpts):
     img = cv.line(img, pt1, (int(dest3[0]),int(dest3[1])), (0,0,255), 3)
     return img
 
-#draws the cube on the board
+#Draws the cube on the board
 def drawCube(img, corners, imgpts):
     imgpts = np.int32(imgpts).reshape(-1,2)
     
@@ -36,7 +36,7 @@ def drawCube(img, corners, imgpts):
     return img
 
 
-#function to show image
+#Function to show image
 def showImage(name, image, wait = -1):
     cv.imshow(name, image)
     if(wait >= 0):
@@ -51,14 +51,14 @@ def click_event(event, x, y, flags, params):
         clickPoints.append((x,y))
         counter += 1
 
-#returns true to reject and image based on the sharpness of the chessboard
+#returns true if quality is good for calibration and image based on the sharpness of the chessboard
 def checkQuality(gray, corners, limit):
     retval, sharp = cv.estimateChessboardSharpness(gray, const.BOARD_SIZE, corners)
     if retval[0] > limit:
         print("Sharpness : " + str(retval[0]) +" - Limit :" + str(limit) )
     return retval[0] <= limit
 
-#Improves the quality of the chessboard
+#Improves the quality of the chessboard by enhancing edges
 def improveQuality(gray):
 
     #determine original sharpness of the board
