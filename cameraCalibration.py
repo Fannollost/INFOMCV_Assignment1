@@ -108,6 +108,7 @@ def main():
     criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
     objp = np.zeros((const.BOARD_SIZE[0]*const.BOARD_SIZE[1],3), np.float32)
     objp[:,:2] = np.mgrid[0:const.BOARD_SIZE[0], 0:const.BOARD_SIZE[1]].T.reshape(-1,2)
+    #if no configuration file is found, or if calibration is forced, calibrate the camera
     if(os.path.isfile(const.DATA_PATH) != True or const.FORCE_CALIBRATION):
         #prepare object points
 
