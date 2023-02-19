@@ -217,9 +217,17 @@ def main():
                 showImage(const.WINDOW_NAME, img, 3000)
 
         ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+
+        mean_error = 0
+        for i in range(len(objpoints)):
+            imgpoints2, _ = cv.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, dist)
+            error = cv.norm(imgpoints[i], imgpoints2, cv.NORM_L2)/len(imgpoints2)
+            mean_error += error
+
+        print("total error: {}".format(mean_error/len(objpoints)) )
         # https://stackoverflow.com/questions/23781089/opencv-calibratecamera-2-reprojection-error-and-custom-computed-one-not-agree?rq=1
         # https://stackoverflow.com/questions/37901806/reprojection-of-calibratecamera-and-projectpoints
-        print("Root-mean-square error : "+str(ret)+ " px")
+        # print("Root-mean-square error : "+str(ret)+ " px")
         np.savez(const.DATA_PATH, mtx=mtx, dist=dist, rvecs=rvecs, tvecs=tvecs)
     else:
         calibration = np.load(const.DATA_PATH)
